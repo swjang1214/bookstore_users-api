@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	queryInsertUser = "INSERT INTO users (first_name, last_name, email, date_created) VALUES(?,?,?,?)"
+	queryInsertUser = "INSERT INTO users (first_name, last_name, email, date_created) VALUES (?,?,?,?)"
 )
 
 var (
@@ -48,6 +48,7 @@ func (user *User) Save() *errors.RestError {
 
 	user.DateCreated = date_utils.GetNowString()
 
+	fmt.Println(users_db.Client)
 	//! 데이터를 넣어 실행
 	insertResult, err := stmt.Exec(user.FirstName, user.LastName, user.Email, user.DateCreated)
 	if err != nil {
