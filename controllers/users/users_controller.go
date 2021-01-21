@@ -14,6 +14,10 @@ var (
 	counter int
 )
 
+func TestServiceInterface() {
+	//services
+}
+
 func getUserId(userIdParam string) (int64, *errors.RestError) {
 	userId, userErr := strconv.ParseInt(userIdParam, 10, 64)
 	if userErr != nil {
@@ -43,7 +47,7 @@ func Create(c *gin.Context) {
 		return
 	}
 
-	result, restErr := services.CreateUser(user)
+	result, restErr := services.UserService.CreateUser(user)
 	if restErr != nil {
 		c.JSON(restErr.Status, restErr)
 		return
@@ -66,12 +70,12 @@ func Get(c *gin.Context) {
 	// 	c.JSON(err.Status, &err)
 	// 	return
 	// }
-	user, getErr := services.GetUser(userId)
+	user, getErr := services.UserService.GetUser(userId)
 	if getErr != nil {
 		c.JSON(getErr.Status, getErr)
 		return
 	}
-	c.JSON(http.StatusOK, user)
+	c.JSON(http.StatusOK, user.Marshal(c.GetHeader("X-Public") == "true"))
 }
 
 func Update(c *gin.Context) {
@@ -98,7 +102,7 @@ func Update(c *gin.Context) {
 
 	isPartial := c.Request.Method == http.MethodPatch
 
-	result, err2 := services.UpdateUser(isPartial, user)
+	result, err2 := services.UserService.UpdateUser(isPartial, user)
 	if err2 != nil {
 		c.JSON(err2.Status, err2)
 		return
@@ -119,7 +123,7 @@ func Delete(c *gin.Context) {
 		return
 	}
 
-	if err := services.DeleteUser(userId); err != nil {
+	if err := services.UserService.DeleteUser(userId); err != nil {
 		c.JSON(err.Status, &err)
 		return
 	}
@@ -131,11 +135,17 @@ func Search(c *gin.Context) {
 	//! localhost:8080/users/search?status=active
 	status := c.Query("status")
 
-	users, err := services.FindByStatus(status)
+	users, err := services.UserService.SearchUser(status)
 	if err != nil {
 		c.JSON(err.Status, err)
 		return
 	}
-	c.JSON(http.StatusOK, users)
+	result := users.Marshal(c.GetHeader("X-Public") == "true")
+	// result := make([]interface{}, len(users))
+	// for index, user := range users {
+	// 	result[index] = user.Marshal(c.GetHeader("X-Public") == "true")
+	// }
+
+	c.JSON(http.StatusOK, result)
 
 }

@@ -20,6 +20,8 @@ type User struct {
 	Password    string `json:"password"`
 }
 
+type Users []User
+
 func Validate(user *User) *errors.RestError {
 	user.Email = strings.TrimSpace(strings.ToLower(user.Email))
 	if user.Email == "" {

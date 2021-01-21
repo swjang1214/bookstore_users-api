@@ -1,12 +1,28 @@
 package services
 
 import (
+	"fmt"
+
 	"github.com/swjang1214/bookstore_users-api/domain/users"
+	"github.com/swjang1214/bookstore_users-api/utils/crypto_utils"
 	"github.com/swjang1214/bookstore_users-api/utils/date_utils"
 	"github.com/swjang1214/bookstore_users-api/utils/errors"
 )
 
-func GetUser(userId int64) (*users.User, *errors.RestError) {
+type userService struct{}
+type userServiceInterface interface {
+	GetUser(int64) (*users.User, *errors.RestError)
+	CreateUser(users.User) (*users.User, *errors.RestError)
+	UpdateUser(bool, users.User) (*users.User, *errors.RestError)
+	DeleteUser(int64) *errors.RestError
+	SearchUser(string) (users.Users, *errors.RestError)
+}
+
+var (
+	UserService userServiceInterface = &userService{}
+)
+
+func (*userService) GetUser(userId int64) (*users.User, *errors.RestError) {
 	user := users.User{
 		ID: userId,
 	}
@@ -17,12 +33,14 @@ func GetUser(userId int64) (*users.User, *errors.RestError) {
 	return &user, nil
 }
 
-func CreateUser(user users.User) (*users.User, *errors.RestError) {
+func (*userService) CreateUser(user users.User) (*users.User, *errors.RestError) {
 	if err := user.Validate(); err != nil {
 		return nil, err
 	}
 	user.Status = users.StatusActive
 	user.DateCreated = date_utils.GetNowDBString()
+	user.Password = crypto_utils.GetMd5(user.Password)
+	fmt.Println(user.Password)
 	if err := user.Save(); err != nil {
 		return nil, err
 	}
@@ -30,7 +48,7 @@ func CreateUser(user users.User) (*users.User, *errors.RestError) {
 	return &user, nil
 }
 
-func UpdateUser(isPartial bool, user users.User) (*users.User, *errors.RestError) {
+func (*userService) UpdateUser(isPartial bool, user users.User) (*users.User, *errors.RestError) {
 
 	if isPartial == false {
 		if err := user.Validate(); err != nil {
@@ -71,12 +89,12 @@ func UpdateUser(isPartial bool, user users.User) (*users.User, *errors.RestError
 	return &user, nil
 }
 
-func DeleteUser(userId int64) *errors.RestError {
+func (*userService) DeleteUser(userId int64) *errors.RestError {
 	user := &users.User{ID: userId}
 	return user.Delete()
 }
 
-func FindByStatus(status string) ([]users.User, *errors.RestError) {
+func (*userService) SearchUser(status string) (users.Users, *errors.RestError) {
 	dao := &users.User{}
 	return dao.FindByStatus(status)
 }
