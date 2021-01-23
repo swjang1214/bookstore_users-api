@@ -1,14 +1,31 @@
 package users
 
 import (
+	"fmt"
+	"math/rand"
 	"strings"
 
+	"github.com/swjang1214/bookstore_users-api/utils/crypto_utils"
 	"github.com/swjang1214/bookstore_users-api/utils/errors"
 )
 
 const (
-	StatusActive = "active"
+	invitationHashLayout = "%s_%s_%v"
+	StatusActive         = "active"
+	StatusUsed           = "used"
 )
+
+type Invitation struct {
+	ID          int64  `json:"id"`
+	Email       string `json:"email"`
+	DateCreated string `json:"date_created"`
+	Hash        string `json:"hash"`
+	Status      string `json:"status"`
+}
+
+func (i *Invitation) GetNewHash() string {
+	return crypto_utils.GetMd5(fmt.Sprintf(invitationHashLayout, i.Email, i.DateCreated, rand.Uint64()))
+}
 
 type User struct {
 	ID          int64  `json:"id"`

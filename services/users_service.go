@@ -16,11 +16,28 @@ type userServiceInterface interface {
 	UpdateUser(bool, users.User) (*users.User, *errors.RestError)
 	DeleteUser(int64) *errors.RestError
 	SearchUser(string) (users.Users, *errors.RestError)
+	LoginUser(users.LoginRequest) (*users.User, *errors.RestError)
 }
 
 var (
 	UserService userServiceInterface = &userService{}
 )
+
+func (*userService) LoginUser(req users.LoginRequest) (*users.User, *errors.RestError) {
+	dao := &users.User{
+		Email:    req.Email,
+		Password: req.Password,
+	}
+
+	dao.Password = crypto_utils.GetMd5(dao.Password)
+	err := dao.GetByEmailAndPassword()
+	if err != nil {
+		return nil, err
+	}
+
+	return dao, nil
+
+}
 
 func (*userService) GetUser(userId int64) (*users.User, *errors.RestError) {
 	user := users.User{

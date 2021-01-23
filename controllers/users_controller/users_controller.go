@@ -1,4 +1,4 @@
-package users
+package users_controller
 
 import (
 	"net/http"
@@ -148,4 +148,20 @@ func Search(c *gin.Context) {
 
 	c.JSON(http.StatusOK, result)
 
+}
+
+func Login(c *gin.Context) {
+	var request users.LoginRequest
+	if err := c.ShouldBindJSON(&request); err != nil {
+		rerr := errors.NewBadRequestError("invalid json body")
+		c.JSON(rerr.Status, rerr)
+		return
+	}
+	user, err := services.UserService.LoginUser(request)
+	if err != nil {
+		c.JSON(err.Status, err)
+		return
+	}
+	result := user.Marshal(c.GetHeader("X-Public") == "true")
+	c.JSON(http.StatusOK, result)
 }
